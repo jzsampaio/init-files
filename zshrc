@@ -14,16 +14,14 @@ source $ZSH/oh-my-zsh.sh
 
 export LANG=en_US.UTF-8
 
-export EDITOR='emacs -nw'
-
-alias emacsconfig="emacs -nw ~/.emacs.el"
-alias zshconfig="emacs -nw ~/.zshrc"
+alias myedit='emacsclient --alternate-editor="" --no-wait $*'
+export EDITOR='emacsclient --alternate-editor="" --no-wait $*'
+alias emacsconfig="myedit ~/.emacs.el"
+alias zshconfig="myedit -nw ~/.zshrc"
 alias zshsource="source ~/.zshrc"
-alias vimconfig="emacs -nw ~/.vimrc"
-alias edit-text="emacs"
+alias vimconfig="myedit -nw ~/.vimrc"
+alias edit-text="myedit"
 alias taskjuggler='tj3'
-alias emacs="emacs"
-alias vim="emacs -nw"
 alias down="cd ~/Downloads"
 
 export PATH=$PATH:/home/jz/.local/bin
