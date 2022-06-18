@@ -1,0 +1,919 @@
+* Emacs
+** Run emacs server on background
+
+#+begin_src elisp
+(server-start)
+#+end_src
+
+** Reload init.el
+
+#+begin_src emacs-lisp
+(defun reload-init ()
+  "Reload the init file"
+  (interactive)
+   (load-file "~/.emacs.d/init.el"))
+#+end_src
+
+** Quick open files with ~C-x r j a~
+#+begin_src emacs-lisp
+(set-register ?i (cons 'file "~/.emacs.d/settings.org"))
+(set-register ?s (cons 'file "~/Work/meeting-summaries.org"))
+(set-register ?p (cons 'file "~/Work/todo-lists/side-projects.org"))
+(set-register ?e (cons 'file "~/.emacs.d/engineering-journal.org"))
+(set-register ?m (cons 'file "~/Work/tech-unit/model-marketplace/src/Server/Server.fs"))
+(set-register ?c (cons 'file "~/Work/tech-unit/colgate/predictive-forecasting/src/Server/Server.fs"))
+(set-register ?t (cons 'file "~/Work/todo-lists/datarisk.org"))
+(set-register ?b (cons 'file "~/Work/todo-lists/books.org"))
+(set-register ?d (cons 'file "~/Work/tech-unit/documentation"))
+(set-register ?1 (cons 'file "~/Work/1-1.org"))
+#+end_src
+** Ido
+
+The Ido package lets you switch between buffers and visit files and
+directories with a minimum of keystrokes.
+
+#+begin_src elisp
+  (require 'ido)
+  (ido-mode t)
+  (setq ido-separator "\n")
+#+end_src
+
+** Startup Screen
+
+#+begin_src elisp
+  (when (display-graphic-p)
+    (require 'all-the-icons))
+  (require 'dashboard)
+  (dashboard-setup-startup-hook)
+  ;; Or if you use use-package
+  (use-package dashboard
+    :ensure t
+    :config
+    (setq dashboard-items '((recents  . 5)
+                            (projects . 3)
+                            ))
+    (dashboard-setup-startup-hook))
+  (setq
+   dashboard-startup-banner
+   "/home/jz/.emacs.d/fsharp-logo.png"
+   dashboard-image-banner-max-width 240
+   dashboard-footer-messages
+   '("Soul and body, will and strength")
+   dashboard-set-file-icons t
+   dashboard-center-content t
+   dashboard-banner-logo-title "Every day a bit stronger, a bit harder to kill"
+   )
+#+end_src
+** Manually Installed Packages
+
+#+begin_src elisp
+  (add-to-list 'load-path "~/.emacs.d/lisp/")
+#+end_src
+** Miscellaneous Annoying Stuff
+
+#+begin_src elisp
+  (transient-mark-mode 1)
+  (menu-bar-mode -1)
+  (tool-bar-mode -1)
+  (toggle-scroll-bar -1)
+  (save-place-mode 1)
+  (global-hl-line-mode)
+  (global-display-line-numbers-mode)
+  (exec-path-from-shell-initialize)
+  (global-auto-revert-mode 1)
+
+  (setq
+   inhibit-splash-screen t
+   ;; fix copy and past from clipboard
+   x-select-enable-clipboard t
+   interprogram-paste-function 'x-cut-buffer-or-selection-value
+   doc-view-continuous t
+   create-lockfiles nil
+   auto-save-file-name-transforms  `((".*" "~/.emacs-autosaves/" t))
+   backup-directory-alist `(("." . "~/.emacs-saves"))
+   backup-by-copying t
+   delete-old-versions t
+   kept-new-versions 6
+   kept-old-versions 2
+   version-control t
+   truncate-lines t
+   visible-bell t
+   )
+#+end_src
+* Text Editing
+
+#+begin_src emacs-lisp
+    (global-set-key (kbd "M-q") 'fill-paragraph)
+    (dolist (hook '(text-mode-hook))
+      (add-hook hook (lambda () (flyspell-mode 1))))
+
+    ;; removes all training white space while saving
+    (add-hook 'write-file-hooks 'delete-trailing-whitespace)
+    ;; If you select a word and hit (, it will become (word). Same for ", [, { etc.
+    ;(electric-pair-mode 1)
+
+    (defun org-drill-wrap-word ()
+      "Wrap region from current char to end of word within square brackets"
+      (interactive)
+      (set-mark-command nil)
+      (forward-word)
+      (insert-pair 0 ?[ ?])
+      (backward-char)
+      )
+    (global-set-key (kbd "M-[") 'org-drill-wrap-word)
+; fo[obar] T[his] is my te[xt]
+#+end_src
+
+** Source Code
+
+#+begin_src emacs-lisp
+  (setq
+   highlight-indent-guides-method 'fill
+   show-paren-delay 0)
+  (set-default 'truncate-lines t)
+  (global-set-key (kbd "C-h ,") 'display-local-help)
+  (show-paren-mode 1)
+  (editorconfig-mode 1)
+#+end_src
+
+** Moving lines
+
+#+begin_src elisp
+(defun move-line-up ()
+  "Move up the current line."
+  (interactive)
+  (transpose-lines 1)
+  (forward-line -2)
+  (indent-according-to-mode))
+
+(defun move-line-down ()
+  "Move down the current line."
+  (interactive)
+  (forward-line 1)
+  (transpose-lines 1)
+  (forward-line -1)
+  (indent-according-to-mode))
+
+(global-set-key [(control shift up)]  'move-line-up)
+(global-set-key [(control shift down)]  'move-line-down)
+#+end_src
+* Org
+** Fancier Symbols
+#+begin_src elisp
+   (setq  org-list-demote-modify-bullet '(
+                                          ("+" . "-")
+                                          ("-" . "*")
+                                          ("*" . "+"))
+          org-ellipsis " ↴"
+          org-bullets-bullet-list '("◉" "◎" "♠" "○" "►" "◇")
+          org-list-indent-offset 2
+          )
+#+end_src
+** Basic Setup
+
+#+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(add-hook 'org-mode-hook 'org-bullets-mode)
+
+(setq
+ org-modules '(ol-w3m ol-bbdb ol-bibtex ol-docview ol-gnus ol-info ol-irc ol-mhe ol-rmail ol-eww habits)
+ org-todo-keywords '((sequence "TODO" "|" "DONE" "DEFERRED"))
+ org-M-RET-may-split-line '((default . nil))
+ org-default-notes-file "~/.emacs.d/notes.org"
+ org-log-refile "time"
+ org-goto-interface 'outline-path-completion
+ org-return-follows-link t
+ org-startup-with-inline-images t
+ org-catch-invisible-edits 'show-and-error
+ org-log-into-drawer t
+ org-log-done 'time
+ org-confirm-babel-evaluate nil
+ org-plantuml-jar-path (expand-file-name "/home/jz/.local/bin/plantuml.jar")
+ )
+
+(setq org-journal-dir "/home/jz/.emacs.d/journal/"
+      org-journal-time-format "%I:%M %p ")
+(require 'org-journal)
+
+#+end_src
+** Org Drill
+
+#+begin_src elisp
+(setq
+  org-drill-add-random-noise-to-intervals-p t)
+#+end_src
+
+** Capture Templates
+
+#+begin_src elisp
+  (setq
+     org-capture-templates
+     `(
+       (
+        "t" "Todo" entry
+        (file+headline "~/Work/todo-lists/datarisk.org" "TODO-LIST: Tech Unit")
+        (file "~/.emacs.d/org-templates/todo.org")
+        :prepend t
+        )
+       (
+        "m" "Meeting Summary" entry
+        (file+headline "~/Work/meeting-summaries.org" "Meeting Summaries - Tech Unit")
+        (file "~/.emacs.d/org-templates/meeting-summary.org")
+        :prepend t
+        :jump-to-captured t
+        )
+       (
+        "p" "Meeting Summary - Portuguese" entry
+        (file+headline "~/Work/meeting-summaries.org" "Meeting Summaries - Other")
+        (file "~/.emacs.d/org-templates/meeting-summary-pt.org")
+        :prepend t
+        :jump-to-captured t
+        )
+       (
+        "e" "Engineering Journal" entry
+        (file "~/.emacs.d/engineering-journal.org")
+        "* %?\n:PROPERTIES:\n:DATE: %t\n:END:\n"
+        :prepend t
+        :jump-to-captured t
+        )
+       (
+        "b" "Book Recommendation" entry
+        (file "~/Work/todo-lists/books.org")
+        (file "~/.emacs.d/org-templates/book-recommendation.org")
+        :prepend nil
+        :empty-lines 1
+        :jump-to-captured t
+        )
+       ("v" "Team Event" entry
+        (file+olp+datetree "~/Work/tech-unit/documentation/culture/events.org")
+        "* %^{Name}           :%^{Type|tech_talk|debate}:\n%^{Subject}"
+        :time-prompt t)
+       ("r" "Templates for recruitment process")
+       ("rz" "Recruitment 0 - Approach Lead" entry
+        (file "~/Work/tech-unit/recruitment-emails.org")
+        (file "~/Work/tech-unit/recruitment/email-templates/00-approach-lead.org"))
+       ("rx" "Recruitment 1 - Pair Programming" entry
+        (file "~/Work/tech-unit/recruitment-emails.org")
+        (file "~/Work/tech-unit/recruitment/email-templates/10-pair-programming.org"))
+       ("rc" "Recruitment 2 - Approved bur No Positions Now Invitation to Club" entry
+        (file "~/Work/tech-unit/recruitment-emails.org")
+        (file "~/Work/tech-unit/recruitment/email-templates/20-invitation-to-club.org"))
+       )
+     )
+#+end_src
+
+** Refiling
+
+Refill org headings w/ ~C-c C-w~
+
+#+begin_src elisp
+   (setq
+     org-jz-summary-files '( "~/Work/meeting-summaries.org" )
+     ;; when re-filing offer limited number of options
+     org-refile-targets '(
+                          (nil :maxlevel . 1)
+                          (org-agenda-files :maxlevel . 1)
+                          (org-jz-summary-files :maxlevel . 1)
+                          (("~/SideProjects/personal-todo.org") :maxlevel . 2)
+                          )
+     org-outline-path-complete-in-steps nil
+     org-refile-use-outline-path "file"
+     )
+#+end_src
+
+** Accepted Source Blocks
+
+#+begin_src elisp
+(org-babel-do-load-languages
+ 'org-babel-load-languages '(
+			     (plantuml . t)
+			     (shell . t)
+			     (python . t)
+			     (dot . t)
+			     (gnuplot . t)
+			     (haskell . t)
+			     (sql . t)
+			     )
+ )
+#+end_src
+
+** Export to Reveal
+
+#+begin_src elisp
+  (setq org-reveal-root "file:///home/jz/.local/reveal.js")
+#+end_src
+** Exporters
+
+#+begin_src elisp
+  (require 'ox-beamer)
+  ; (require 'ox-md)
+  ; (require 'ox-org)
+  (require 'ox-reveal)
+  (require 'ox-publish)
+  ; removed options: odt, latex
+  (setq  org-export-backends '(ascii html beamer reveal publish))
+  ; for presentations
+  (setq org-image-actual-width nil)
+  (require 'org-tree-slide)
+#+end_src
+
+** Agenda
+
+#+begin_src elisp
+  (define-key global-map "\C-cl" 'org-store-link)
+  (define-key global-map "\C-ca" 'org-agenda)
+
+  ;; make some org commands available from anywhere (not only org mode)
+  (global-set-key (kbd "C-c a") 'org-agenda)
+  (global-set-key (kbd "C-c c") 'org-capture)
+
+  (setq
+   org-agenda-span 21
+   org-agenda-window-setup "only-window"
+   org-agenda-files '(
+                     "~/Work/todo-lists/datarisk.org"
+                     "~/SideProjects/personal-todo.org"
+                     )
+   org-agenda-custom-commands '(
+                                ("c" . "My Custom Agendas")
+                                ("cu" "Unscheduled TODO" (
+                                                          (todo "" (
+                                                                    (org-agenda-overriding-header "\nUnscheduled TODO")
+                                                                    (org-agenda-skip-function '(org-agenda-skip-entry-if 'timestamp))
+                                                                    )
+                                                                )
+                                                          )
+                                 nil
+                                 nil
+                                 )
+                                )
+   org-agenda-prefix-format '((agenda . " %i %?-12t% s")
+                              (todo . " %i %-12:c")
+                              (tags . " %i %-12:c")
+                              (search . " %i %-12:c"))
+    )
+  (org-super-agenda-mode)
+  (setq
+   org-super-agenda-groups
+   '(
+     (:name "Important"
+            :priority "A")
+     (:name "Late"
+            :scheduled past
+            :order 1)
+     (:name "Planned for today"
+            :scheduled today
+            :order 1)
+     )
+   )
+
+#+end_src
+
+** Update all org blocks
+#+begin_src elisp
+  (defun org-update-all-buffer ()
+    (interactive)
+    (org-update-all-dblocks)
+    (org-babel-execute-buffer)
+    )
+#+end_src
+
+** Fill all paragraphs
+#+begin_src elisp
+  ; These next two modes auto-indents org-buffers as you type! NO NEED
+  ; FOR to press C-c q or fill-paragraph ever again!
+  (defun my/auto-call-fill-paragraph-for-org-mode ()
+      "Call two modes to automatically call fill-paragraph for you."
+      (visual-line-mode)
+      (org-indent-mode))
+  (add-hook 'org-mode-hook 'my/auto-call-fill-paragraph-for-org-mode)
+#+end_src
+
+** Turn lines into check items
+
+#+begin_src elisp
+  (defun org-set-line-checkbox (arg)
+    (interactive "P")
+    (let ((n (or arg 1)))
+      (when (region-active-p)
+        (setq n (count-lines (region-beginning)
+                             (region-end)))
+        (goto-char (region-beginning)))
+      (dotimes (i n)
+        (beginning-of-line)
+        (insert "- [ ] ")
+        (forward-line))
+      (beginning-of-line)))
+
+#+end_src
+** Org Drill
+*** Templates
+
+#+begin_src elisp
+  (require 'org-tempo)
+  (tempo-define-template "org-drill-1"
+                         '("* Item :drill:\n\n\n** Answer\n")
+                         "<1"
+                         "Template for and org drill's simple topic")
+  (tempo-define-template "org-drill-2"
+                         '("* Item :drill:\n:PROPERTIES:\n:DRILL_CARD_TYPE: twosided\n:END:\n\n\n\n** Side A\n\n** Side B\n")
+                         "<2"
+                         "Template for an org drills' 2 sided card")
+  (tempo-define-template "org-drill-3"
+                         '("* Item :drill:\n:PROPERTIES:\n:DRILL_CARD_TYPE: hide1cloze\n:END:\n\n\n")
+                         "<3"
+                         "Template for an org drills' hide1cloze card")
+  (tempo-define-template "org-drill-4"
+                         '("* Item :drill:\n")
+                         "<4"
+                         "Simples org dril template")
+  (tempo-define-template "org-drill-od"
+                         '("** Item :drill:\n")
+                         "<od"
+                         "Simples org dril template")
+  (tempo-define-template "org-drill-ood"
+                         '("*** Item :drill:\n")
+                         "<ood"
+                         "Simples org dril template")
+  (tempo-define-template "org-drill-o"
+                         '("* Item :drill:\n")
+                         "<o"
+                         "Simples org dril template")
+  (tempo-define-template "org-drill-5"
+                         '("* Item :drill:\n\nIs the following correct?\n#+begin_src fsharp\n#+end_src\n\n** Answer")
+                         "<5"
+                         "Simples org dril template")
+  (tempo-define-template "fsharp-code-block"
+                         '("#+begin_src fsharp\n\n#+end_src")
+                         "<f"
+                         "To help constructing org drill cards")
+  (tempo-define-template "fsharp-smart-code-block"
+                         '(
+                           (P "fsharp function:" fname t)
+                           "** "
+                           (s fname)
+                           "\n#+begin_src fsharp :tangle \""
+                           (s fname)
+                           ".fsx\"\n"
+                           (s fname)
+                           "\n#+end_src"
+                           )
+                         "<F"
+                         "To help constructing org drill cards")
+#+end_src
+
+** TJ
+
+#+begin_src elisp
+; (require 'ox-taskjuggler)
+(setq org-taskjuggler-default-reports '("textreport report \"Plan\" {
+formats html
+header '== %title =='
+center -8<-
+[#Plan Plan] | [#Resource_Allocation Resource Allocation]
+----
+=== Plan ===
+<[report id=\"plan\"]>
+----
+=== Resource Allocation ===
+<[report id=\"resourceGraph\"]>
+->8-
+}
+# A traditional Gantt chart with a project overview.
+taskreport plan \"\" {
+headline \"Project Plan\"
+columns bsi,
+        name,
+        start,
+        end,
+        effort,
+        effortdone,
+        effortleft,
+        chart { width 1000 scale day }
+loadunit days
+hideresource 1
+}
+# A graph showing resource allocation. It identifies whether each
+# resource is under- or over-allocated for.
+resourcereport resourceGraph \"\" {
+headline \"Resource Allocation Graph\"
+columns no, name, effort, chart { width 1000 scale day }
+loadunit days
+hidetask ~(isleaf() & isleaf_())
+sorttasks plan.start.up
+}"))
+#+end_src
+** Prefer vertical split
+#+begin_src elisp
+;; Prefer vertical split
+(defun split-window-sensibly-prefer-horizontal (&optional window)
+"Based on split-window-sensibly, but designed to prefer a horizontal split,
+i.e. windows tiled side-by-side."
+  (let ((window (or window (selected-window))))
+    (or (and (window-splittable-p window t)
+         ;; Split window horizontally
+         (with-selected-window window
+           (split-window-right)))
+    (and (window-splittable-p window)
+         ;; Split window vertically
+         (with-selected-window window
+           (split-window-below)))
+    (and
+         ;; If WINDOW is the only usable window on its frame (it is
+         ;; the only one or, not being the only one, all the other
+         ;; ones are dedicated) and is not the minibuffer window, try
+         ;; to split it horizontally disregarding the value of
+         ;; `split-height-threshold'.
+         (let ((frame (window-frame window)))
+           (or
+            (eq window (frame-root-window frame))
+            (catch 'done
+              (walk-window-tree (lambda (w)
+                                  (unless (or (eq w window)
+                                              (window-dedicated-p w))
+                                    (throw 'done nil)))
+                                frame)
+              t)))
+     (not (window-minibuffer-p window))
+     (let ((split-width-threshold 0))
+       (when (window-splittable-p window t)
+         (with-selected-window window
+               (split-window-right))))))))
+
+(defun split-window-really-sensibly (&optional window)
+  (let ((window (or window (selected-window))))
+    (if (> (window-total-width window) (* 2 (window-total-height window)))
+        (with-selected-window window (split-window-sensibly-prefer-horizontal window))
+      (with-selected-window window (split-window-sensibly window)))))
+
+(setq
+   split-height-threshold 4
+   split-width-threshold 40
+   split-window-preferred-function 'split-window-really-sensibly)
+#+end_src
+** Org-Text
+
+#+begin_src elisp
+ (require 'org-msg)
+#+end_src
+* Helm
+
+#+begin_src elisp
+;; start helm-help mode (a version of M-x which shows documentaiton)
+(global-set-key (kbd "M-x") 'helm-M-x)
+;; better buffer navigation w/ help
+(global-set-key (kbd "C-z") 'helm-buffers-list)
+(helm-mode 1)
+#+end_src
+
+* Magit & Forge
+#+begin_src elisp
+(global-set-key (kbd "C-M-g") 'magit-status)
+
+(with-eval-after-load 'magit
+  (require 'forge))
+#+end_src
+* Projectile
+
+~Projectile~ allows you to navigate project of a given project. There
+are many ways of identifying what makes a project. The one I use the
+most is based on git.
+
+#+begin_src emacs-lisp
+   (projectile-mode +1)
+   (define-key projectile-mode-map (kbd "s-p") 'projectile-command-map)
+   (define-key projectile-mode-map (kbd "C-c p") 'projectile-command-map)
+
+   (setq
+    projectile-indexing-method 'hybrid
+    projectile-enable-caching t
+    projectile-sort-order 'recentf
+    projectile-globally-ignored-file-suffixes '(".dll" ".fsproj.nuget.dgspec.json" ".pdb" "js.map")
+    )
+#+end_src
+
+* Company
+
+~company~ stands for ~complete anything~.
+
+#+begin_src emacs-lisp
+(add-hook 'after-init-hook 'global-company-mode)
+(global-set-key (kbd "M-n") 'company-complete)
+#+end_src
+
+* Flymake
+
+#+begin_src emacs-lisp
+  (require 'flymake)
+  (define-key flymake-mode-map (kbd "M-n") 'flymake-goto-next-error)
+  (define-key flymake-mode-map (kbd "M-p") 'flymake-goto-prev-error)
+#+end_src
+
+* F# (fsharp f# FSharp)
+#+begin_src emacs-lisp
+  (require 'fsharp-mode)
+  (require 'ob-fsharp)
+  ; (require 'eglot-fsharp)
+
+  ; (setq eglot-fsharp-server-install-dir "~/.local/bin/FsAutoComplete/")
+  (setq
+   ; for dotnet 5
+   ; lsp-fsharp-server-install-dir "~/.local/bin/FsAutoComplete/"
+   ; for dotnet 6
+   lsp-fsharp-server-install-dir "~/.local/fsautocomplete-0.54/"
+   lsp-enable-snippet nil
+   lsp-modeline-diagnostics-enable t
+   )
+  (setq inferior-fsharp-program "dotnet fsi --readline-")
+  (setq-default fsharp-indent-offset 4)
+
+  (add-hook 'fsharp-mode-hook 'lsp)
+  (add-hook 'fsharp-mode-hook 'highlight-indent-guides-mode)
+  ; (add-hook 'fsharp-mode-hook 'eglot-ensure)
+  (add-hook 'fsharp-mode-hook
+            (lambda () (yafolding-mode)))
+
+  (defun eval-fsharp-buffer ()
+    (interactive)
+    (mark-whole-buffer)
+    (fsharp-eval-region)
+    )
+#+end_src
+* TJ3
+
+#+begin_src elisp
+(require 'tj3-mode)
+#+end_src
+
+* Python
+
+#+begin_src elisp
+(setq py-autopep8-options nil)
+(defun my/python-mode-hook ()
+  (add-to-list 'company-backends 'company-jedi))
+(add-hook 'python-mode-hook 'my/python-mode-hook)
+#+end_src
+
+* Web Browser
+
+#+begin_src elisp
+(use-package shrface
+  :defer t
+  :config
+  (shrface-basic)
+  (shrface-trial)
+  (shrface-default-keybindings) ; setup default keybindings
+  (setq shrface-href-versatile t))
+
+(use-package eww
+  :defer t
+  :init
+  (add-hook 'eww-after-render-hook #'shrface-mode)
+  :config
+  (require 'shrface))
+
+(setq browse-url-browser-function 'eww-browse-url)
+#+end_src
+* SQL
+
+#+begin_src elisp
+(defun sql-beautify-region (beg end)
+  "Beautify SQL in region between beg and END."
+  (interactive "r")
+  (save-excursion
+    (shell-command-on-region beg end "anbt-sql-formatter" nil t)))
+
+(defun sql-beautify-buffer ()
+ "Beautify SQL in buffer."
+ (interactive)
+ (sql-beautify-region (point-min) (point-max)))
+
+(defun sql-beautify-region-or-buffer ()
+  "Beautify SQL for the entire buffer or the marked region between beg and end"
+  (interactive)
+  (if (use-region-p)
+      (sql-beautify-region (region-beginning) (region-end))
+    (sql-beautify-buffer)))
+#+end_src
+
+* Blog Configuraiton
+
+#+begin_src elisp
+    (setq org-publish-project-alist
+          '(("bloghtml"
+             :base-directory "~/SideProjects/jz-blog/org/"
+             :recursive t
+             :publishing-function org-html-publish-to-html
+             :publishing-directory "~/SideProjects/jz-blog/public"
+             :section-numbers nil
+             :auto-sitemap t
+             :makeindex t
+             :headline-levels t
+             :with-toc nil
+             :exclude "header.org"
+             :html-self-link-headlines t
+             )
+            ("blogother"
+             :base-directory "~/SideProjects/jz-blog/other/"
+             :base-extension "css\\|jpg"
+             :publishing-directory "~/SideProjects/jz-blog/public/other"
+             :publishing-function org-publish-attachment)
+            ("JZ's blog" :components ("bloghtml" "blogother")))
+          )
+#+end_src
+* Epub
+
+#+begin_src elisp
+(add-to-list 'auto-mode-alist '("\\.epub\\'" . nov-mode))
+(setq nov-text-width 80)
+#+end_src
+
+* Dictionary
+
+#+begin_src elisp
+   (define-key global-map "\C-c1" 'dictionary-lookup-definition)
+#+end_src
+* Bookmarks+
+
+#+begin_src elisp
+(quelpa '(bookmark+ :fetcher wiki
+                        :files
+                        ("bookmark+.el"
+                         "bookmark+-mac.el"
+                         "bookmark+-bmu.el"
+                         "bookmark+-1.el"
+                         "bookmark+-key.el"
+                         "bookmark+-lit.el"
+                         "bookmark+-doc.el"
+                         "bookmark+-chg.el")))
+
+; solving book mark problem
+(defun my/pdf-bookmark-jump-handler (bmk)
+"Fixes integration w/ bookmark plus"
+(switch-to-buffer (current-buffer))
+(current-buffer))
+
+(advice-add 'pdf-view-bookmark-jump-handler :after 'my/pdf-bookmark-jump-handler)
+
+(add-to-list 'auto-mode-alist '("\\.pdf$" . pdf-tools-install))
+
+ (require 'bookmark+)
+#+end_src
+
+* SQL
+
+#+begin_src elisp
+  (setq
+   sql-postgres-login-params
+   '((user :default #1="model-marketplace")
+     (database :default #1="model-marketplace")
+     (server :default #1="model-marketplace")
+     (port :default #1=9002)
+     )
+   )
+#+end_src
+* Sending/Receiving Emails
+
+There is a lot involved in sending, receiving, and reading
+emails. Browser based email clients solve a bunch of problem. On emacs
+you need on tool for each problem.
+
+- mbsync :: syncs Gmail content to your hard disc. Configured w/
+  [[~/.mbsyncrc]].
+- mu :: indexes your emails, allowing you to quickly search your emails
+- mu4e :: an emacs front-end for mu
+- smtpmail :: an emacs package for sending emails out. Credentials stored to [[~/.authinfo]]
+
+#+begin_src elisp
+  (add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+  (require 'mu4e)
+  (setq mu4e-change-filenames-when-moving t
+        mu4e-update-interval 120 ;; seconds
+        mu4e-get-mail-command "mbsync -a"
+        mu4e-maildir "~/.local/share/mail"
+        mu4e-drafts-folder "/[Gmail]/Drafts"
+        mu4e-sent-folder   "/[Gmail]/Sent Mail"
+        mu4e-refile-folder "/[Gmail]/All Mail"
+        mu4e-trash-folder  "/[Gmail]/Trash"
+        mail-user-agent 'mu4e-user-agent
+        send-mail-function 'smtpmail-send-it ; general purpose emacs variable
+        message-send-mail-function 'smtpmail-send-it ; variable specific to mu4e
+        smtpmail-default-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-server "smtp.gmail.com"
+        smtpmail-smtp-service 587
+        user-mail-address "jz@datarisk.io"
+        )
+
+  (mu4e t)
+#+end_src
+
+** Next steps
+
+- write emails w/ org
+- encrypt and sign emails
+- add html signature to my emails
+- Checkout these packages: mu4e, org-msg, helm-mu, helm-org-contacts
+- Checkout Bellanis config for mu4e [[https://github.com/ebellani/Emacs.d/blob/master/init.el#L392][Bellani's init.el]]
+- Encrypt my email credentials
+- Checkout Bellani's mbsync config
+- Sending emails async
+- Read more about mu4e [[info:mu4e#Top][info:mu4e#Top]]
+
+**** Bellani's mbsync config
+#+begin_quote
+# -*- mode: conf-space; -*-
+# mbsyncrc based on
+# http://www.ict4g.net/adolfo/notes/2014/12/27/EmacsIMAP.html
+# ACCOUNT INFORMATION
+IMAPAccount gmail
+# Address to connect to
+Host imap.gmail.com
+User ebellani@gmail.com
+PassCmd "gpg2 -q --for-your-eyes-only --no-tty -d ~/.authinfo.gpg 2>/dev/null | awk '/machine imap.gmail.com login ebellani@gmail.com/ {print $NF}'"
+Port 993
+SSLType IMAPS
+AuthMechs Login
+CertificateFile /etc/ssl/certs/ca-certificates.crt
+Timeout 0
+
+# THEN WE SPECIFY THE LOCAL AND REMOTE STORAGE
+# - THE REMOTE STORAGE IS WHERE WE GET THE MAIL FROM (E.G., THE
+#   SPECIFICATION OF AN IMAP ACCOUNT)
+# - THE LOCAL STORAGE IS WHERE WE STORE THE EMAIL ON OUR COMPUTER
+
+# REMOTE STORAGE (USE THE IMAP ACCOUNT SPECIFIED ABOVE)
+IMAPStore gmail-remote
+Account gmail
+
+# LOCAL STORAGE (CREATE DIRECTORIES with mkdir -p Maildir/gmail)
+MaildirStore gmail-local
+Path ~/Mail/
+Inbox ~/Mail/INBOX
+
+# CONNECTIONS SPECIFY LINKS BETWEEN REMOTE AND LOCAL FOLDERS
+#
+# CONNECTIONS ARE SPECIFIED USING PATTERNS, WHICH MATCH REMOTE MAIl
+# FOLDERS. SOME COMMONLY USED PATTERS INCLUDE:
+#
+# 1 "*" TO MATCH EVERYTHING
+# 2 "!DIR" TO EXCLUDE "DIR"
+# 3 "DIR" TO MATCH DIR
+
+Channel gmail-inbox
+Master :gmail-remote:
+Slave :gmail-local:
+Patterns "INBOX"
+Create Both
+Expunge Both
+SyncState *
+
+Channel gmail-trash
+Master :gmail-remote:"[Gmail]/Bin"
+Slave :gmail-local:"trash"
+Create Both
+Expunge Both
+SyncState *
+
+Channel gmail-sent
+Master :gmail-remote:"[Gmail]/Sent Mail"
+Slave :gmail-local:"sent"
+Create Both
+Expunge Both
+SyncState *
+
+Channel gmail-all
+Master :gmail-remote:"[Gmail]/All Mail"
+Slave :gmail-local:"all"
+Create Both
+Expunge Both
+SyncState *
+
+Channel gmail-starred
+Master :gmail-remote:"[Gmail]/Starred"
+Slave :gmail-local:"starred"
+Create Both
+Expunge Both
+SyncState *
+
+# GROUPS PUT TOGETHER CHANNELS, SO THAT WE CAN INVOKE
+# MBSYNC ON A GROUP TO SYNC ALL CHANNELS
+#
+# FOR INSTANCE: "mbsync gmail" GETS MAIL FROM
+# "gmail-inbox", "gmail-sent", and "gmail-trash"
+#
+Group gmail
+Channel gmail-inbox
+Channel gmail-sent
+Channel gmail-trash
+Channel gmail-all
+Channel gmail-starred
+#+end_quote
+* Elfeed
+
+#+begin_src elisp
+(require 'elfeed-org)
+(elfeed-org)
+(setq rmh-elfeed-org-files (list "~/.emacs.d/feeds.org"))
+(setq-default elfeed-search-filter "@3-days-ago +unread ")
+
+#+end_src

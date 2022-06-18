@@ -12,10 +12,16 @@ plugins=(
 
 source $ZSH/oh-my-zsh.sh
 
+export HISTSIZE=1000000000
+export SAVEHIST=$HISTSIZE
+setopt EXTENDED_HISTORY
+
 export LANG=en_US.UTF-8
 
 alias myedit='emacsclient --alternate-editor="" --no-wait $*'
 export EDITOR='emacsclient --alternate-editor="" --no-wait $*'
+# export EDITOR='vim'
+# alias myedit='vim'
 alias emacsconfig="myedit ~/.emacs.el"
 alias zshconfig="myedit -nw ~/.zshrc"
 alias zshsource="source ~/.zshrc"
@@ -40,15 +46,28 @@ function puml {
   java -jar ~/.local/bin/plantuml.jar $@
 }
 
-source ~/.zsh-parts/luiza-normey.sh
+# source ~/Work/tech-unit/colgate/predictive-forecasting/sh/colgate.sh
+# source ~/.zsh-parts/colgate.sh
+source /home/jz/Work/tech-unit/model-marketplace/sh/model-marketplace.sh
+source ~/.zsh-parts/model-marketplace.sh
 export PATH="$PATH:/home/jz/.dotnet/tools"
-export DOTNET_ROOT="/snap/dotnet-sdk/current"
+export DOTNET_ROOT="/home/jz/.local/dotnet-5.0.403"
 export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
 export PATH="${PATH}:${DOTNET_ROOT}"
 
-alias activate-dotnet5="snap refresh dotnet-sdk --channel=latest/stable"
-alias activate-dotnet50100="snap refresh dotnet-sdk --channel=5.0/beta"
-alias activate-dotnet3="snap refresh dotnet-sdk --channel=3.1/stable"
-alias activate-dotnet2="snap refresh dotnet-sdk --channel=2.1/stable"
+function activate-dotnet-cpf {
+    export DOTNET_ROOT="/home/jz/.local/dotnet-5.0.201"
+    export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
+    export PATH="${DOTNET_ROOT}:${PATH}"
+}
+
+function activate-dotnet-6 {
+    export DOTNET_ROOT="/home/jz/.local/dotnet-6.0.301/"
+    export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
+    export PATH="${DOTNET_ROOT}:${PATH}"
+}
+
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 source /home/jz/.local/bin/git-subrepo/.rc
+if [ -e /home/jz/.nix-profile/etc/profile.d/nix.sh ]; then . /home/jz/.nix-profile/etc/profile.d/nix.sh; fi # added by Nix installer
+source /home/jz/.nix-profile/etc/profile.d/nix.sh

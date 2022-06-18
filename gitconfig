@@ -13,3 +13,7 @@
 
 [includeIf "gitdir:~/Work/"]
 	path = ~/.gitconfig-work
+[credential]
+	helper = store
+[gitlab]
+	user = jz.datarisk

@@ -1,6 +1,7 @@
 #!/bin/bash
 
 cp ~/.emacs.d/init.el emacs.d/
+cp ~/.emacs.d/settings.org  emacs.d/
 rsync -r ~/.emacs.d/autoload/ emacs.d/autoload
 cp ~/.zshrc zshrc
 cp ~/.gitconfig gitconfig
