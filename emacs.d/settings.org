@@ -195,38 +195,6 @@ directories with a minimum of keystrokes.
 (require 'org-journal)
 
 #+end_src
-** Org Drill
-
-#+begin_src elisp
-(setq
-  org-drill-add-random-noise-to-intervals-p t
-  org-drill-use-visible-cloze-face-p t
-  )
-
-(defun org-drill-wrap-word ()
-  "Wrap region from current char to end of word within square brackets. E.g.: 'Foobar' -> 'Foo[bar]'"
-  (interactive)
-  (set-mark-command nil)
-  (forward-word)
-  (insert-pair 0 ?[ ?])
-  (backward-char)
-  )
-(global-set-key (kbd "C-x RET [") 'org-drill-wrap-word)
-
-(defun org-drill-wrap-with-alternative (start end alternative)
-  "Wrap region and create cloze with 2 alternatives. 'Foobar' -> '[Foobar||Foobar or Barfoo]'"
-  (interactive "r\nMAlternative: \n")
-  (kill-region start end)
-  (let ((answer (car kill-ring)))
-    (if (= (abs (% (random) 2)) 0)
-	(insert (concat "[" answer "||\"" answer "\" or \"" alternative "\"]"))
-      (insert (concat "[" answer "||\"" alternative "\" or \"" answer "\"]"))
-      )
-    )
-  )
-(global-set-key (kbd "C-x RET M-[") 'org-drill-wrap-with-alternative)
-#+end_src
-
 ** Capture Templates
 
 #+begin_src elisp
@@ -459,11 +427,26 @@ Refill org headings w/ ~C-c C-w~
       (beginning-of-line)))
 
 #+end_src
-** Org Drill
-*** Templates
+
+** Ort Tempo (quick templates triggered on key expansion)
 
 #+begin_src elisp
   (require 'org-tempo)
+#+end_src
+
+** Org Drill
+
+#+begin_src elisp
+(setq
+  org-drill-add-random-noise-to-intervals-p t
+  org-drill-use-visible-cloze-face-p t
+  )
+#+end_src
+
+*** Tempo Templates for Org Drill
+
+#+begin_src elisp
+
   (tempo-define-template "org-drill-1"
                          '("* Item :drill:\n\n\n** Answer\n")
                          "<1"
@@ -480,41 +463,60 @@ Refill org headings w/ ~C-c C-w~
                          '("* Item :drill:\n")
                          "<4"
                          "Simples org dril template")
-  (tempo-define-template "org-drill-od"
-                         '("** Item :drill:\n")
-                         "<od"
-                         "Simples org dril template")
-  (tempo-define-template "org-drill-ood"
-                         '("*** Item :drill:\n")
-                         "<ood"
-                         "Simples org dril template")
-  (tempo-define-template "org-drill-o"
-                         '("* Item :drill:\n")
-                         "<o"
-                         "Simples org dril template")
-  (tempo-define-template "org-drill-5"
-                         '("* Item :drill:\n\nIs the following correct?\n#+begin_src fsharp\n#+end_src\n\n** Answer")
-                         "<5"
-                         "Simples org dril template")
-  (tempo-define-template "fsharp-code-block"
-                         '("#+begin_src fsharp\n\n#+end_src")
-                         "<f"
-                         "To help constructing org drill cards")
-  (tempo-define-template "fsharp-smart-code-block"
-                         '(
-                           (P "fsharp function:" fname t)
-                           "** "
-                           (s fname)
-                           "\n#+begin_src fsharp :tangle \""
-                           (s fname)
-                           ".fsx\"\n"
-                           (s fname)
-                           "\n#+end_src"
-                           )
-                         "<F"
-                         "To help constructing org drill cards")
+
 #+end_src
 
+*** Shortcuts for cloze deletions
+
+To use cloze deletion, one or more parts of the body of the topic is
+marked as cloze text by surrounding it with single square brackets,
+[like so].
+
+#+begin_src elisp
+(defun org-drill-wrap-word ()
+  "Wrap region from current char to end of word within square brackets. E.g.: 'Foobar' -> 'Foo[bar]'"
+  (interactive)
+  (set-mark-command nil)
+  (forward-word)
+  (insert-pair 0 ?[ ?])
+  (backward-char)
+  )
+(global-set-key (kbd "C-x RET [") 'org-drill-wrap-word)
+
+(defun org-drill-wrap-with-alternative (start end alternative)
+  "Wrap region and create cloze with 2 alternatives. 'Foobar' -> '[Foobar||Foobar or Barfoo]'"
+  (interactive "r\nMAlternative: \n")
+  (kill-region start end)
+  (let ((answer (car kill-ring)))
+    (if (= (abs (% (random) 2)) 0)
+	(insert (concat "[" answer "||\"" answer "\" or \"" alternative "\"]"))
+      (insert (concat "[" answer "||\"" alternative "\" or \"" answer "\"]"))
+      )
+    )
+  )
+(global-set-key (kbd "C-x RET M-[") 'org-drill-wrap-with-alternative)
+#+end_src
+
+*** Capturing text from pdf (for usage in org capture)
+
+#+begin_src elisp
+(defun org-capture-pdf-active-region ()
+  "Capture the active region of the pdf-view buffer."
+  (let* ((pdf-buf-name (plist-get org-capture-plist :original-buffer))
+         (pdf-buf (get-buffer pdf-buf-name)))
+    (if (buffer-live-p pdf-buf)
+        (with-current-buffer pdf-buf
+          (car (pdf-view-active-region-text)))
+      (user-error "Buffer %S not alive." pdf-buf-name))))
+
+;; sample usage:
+;; (setq org-capture-templates
+;;       '(
+;;         ("j" "Notes" entry (file+olp "/temp/Notes.org" "Notes")
+;;          "* %?\n%(org-capture-pdf-active-region)\n")
+;;         )
+;;       )
+#+end_src
 ** TJ
 
 #+begin_src elisp
@@ -620,27 +622,6 @@ i.e. windows tiled side-by-side."
 ;; From this unmaintainded repo: https://github.com/markus1189/org-pdfview
 (require 'org-pdfview)
 #+end_src
-** Capturing text from pdf (for usage in org capture)
-
-#+begin_src elisp
-(defun org-capture-pdf-active-region ()
-  "Capture the active region of the pdf-view buffer."
-  (let* ((pdf-buf-name (plist-get org-capture-plist :original-buffer))
-         (pdf-buf (get-buffer pdf-buf-name)))
-    (if (buffer-live-p pdf-buf)
-        (with-current-buffer pdf-buf
-          (car (pdf-view-active-region-text)))
-      (user-error "Buffer %S not alive." pdf-buf-name))))
-
-;; sample usage:
-;; (setq org-capture-templates
-;;       '(
-;;         ("j" "Notes" entry (file+olp "/temp/Notes.org" "Notes")
-;;          "* %?\n%(org-capture-pdf-active-region)\n")
-;;         )
-;;       )
-#+end_src
-
 * Helm
 
 #+begin_src elisp
@@ -724,6 +705,29 @@ most is based on git.
     (fsharp-eval-region)
     )
 #+end_src
+
+** Tempo Templates
+
+  #+begin_src elisp
+  (tempo-define-template "fsharp-code-block"
+                         '("#+begin_src fsharp\n\n#+end_src")
+                         "<f"
+                         "To help constructing org drill cards")
+  (tempo-define-template "fsharp-smart-code-block"
+                         '(
+                           (P "fsharp function:" fname t)
+                           "** "
+                           (s fname)
+                           "\n#+begin_src fsharp :tangle \""
+                           (s fname)
+                           ".fsx\"\n"
+                           (s fname)
+                           "\n#+end_src"
+                           )
+                         "<F"
+                         "To help constructing org drill cards")
+  #+end_src
+
 * TJ3
 
 #+begin_src elisp
