@@ -121,30 +121,6 @@ directories with a minimum of keystrokes.
     (add-hook 'write-file-hooks 'delete-trailing-whitespace)
     ;; If you select a word and hit (, it will become (word). Same for ", [, { etc.
     ;(electric-pair-mode 1)
-
-    (defun org-drill-wrap-word ()
-      "Wrap region from current char to end of word within square brackets"
-      (interactive)
-      (set-mark-command nil)
-      (forward-word)
-      (insert-pair 0 ?[ ?])
-      (backward-char)
-      )
-    (global-set-key (kbd "C-x RET [") 'org-drill-wrap-word)
-; fo[obar] T[his] is my te[xt]
-
-    (defun org-drill-wrap-with-alternative (start end alternative)
-      "Wrap region and create cloze with 2 alternatives. 'Foobar' -> '[Foobar||Foobar or Barfoo]'"
-      (interactive "r\nMAlternative: \n")
-      (kill-region start end)
-      (let ((answer (car kill-ring)))
-	(if (= (abs (% (random) 2)) 0)
-	    (insert (concat "[" answer "||\"" answer "\" or \"" alternative "\"]"))
-	  (insert (concat "[" answer "||\"" alternative "\" or \"" answer "\"]"))
-	  )
-	)
-      )
-(global-set-key (kbd "C-x RET M-[") 'org-drill-wrap-with-alternative)
 #+end_src
 
 ** Source Code
@@ -226,6 +202,29 @@ directories with a minimum of keystrokes.
   org-drill-add-random-noise-to-intervals-p t
   org-drill-use-visible-cloze-face-p t
   )
+
+(defun org-drill-wrap-word ()
+  "Wrap region from current char to end of word within square brackets. E.g.: 'Foobar' -> 'Foo[bar]'"
+  (interactive)
+  (set-mark-command nil)
+  (forward-word)
+  (insert-pair 0 ?[ ?])
+  (backward-char)
+  )
+(global-set-key (kbd "C-x RET [") 'org-drill-wrap-word)
+
+(defun org-drill-wrap-with-alternative (start end alternative)
+  "Wrap region and create cloze with 2 alternatives. 'Foobar' -> '[Foobar||Foobar or Barfoo]'"
+  (interactive "r\nMAlternative: \n")
+  (kill-region start end)
+  (let ((answer (car kill-ring)))
+    (if (= (abs (% (random) 2)) 0)
+	(insert (concat "[" answer "||\"" answer "\" or \"" alternative "\"]"))
+      (insert (concat "[" answer "||\"" alternative "\" or \"" answer "\"]"))
+      )
+    )
+  )
+(global-set-key (kbd "C-x RET M-[") 'org-drill-wrap-with-alternative)
 #+end_src
 
 ** Capture Templates
