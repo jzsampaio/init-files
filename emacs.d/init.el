@@ -3,6 +3,9 @@
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (package-initialize)
 
+(eval-when-compile
+  (require 'use-package))
+
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
@@ -22,7 +25,7 @@
      (tags . " %i %-12:c")
      (search . " %i %-12:c")))
  '(package-selected-packages
-   '(all-the-icons ob-fsharp forge magit org-msg elfeed-org elfeed helm-org-ql org-super-agenda dockerfile-mode bookmark+ quelpa pdf-tools nov org-scrum ox-reveal nix-mode treemacs-projectile marginalia consult-lsp dap-mode lsp-treemacs lsp-ui treemacs lsp-mode yafolding rotate shrface gnuplot tj3-mode highlight-indent-guides company company-fuzzy org-journal editorconfig yaml-mode dashboard org-ref helm-org org-bullets plantuml-mode use-package dired-subtree exec-path-from-shell helm org-drill-table org-drill color-theme-sanityinc-solarized eglot-jl))
+   '(org-noter-pdftools org-pdftools keycast all-the-icons ob-fsharp forge magit org-msg elfeed-org elfeed helm-org-ql org-super-agenda dockerfile-mode bookmark+ quelpa pdf-tools nov org-scrum ox-reveal nix-mode treemacs-projectile marginalia consult-lsp dap-mode lsp-treemacs lsp-ui treemacs lsp-mode yafolding rotate shrface gnuplot tj3-mode highlight-indent-guides company company-fuzzy org-journal editorconfig yaml-mode dashboard org-ref helm-org org-bullets plantuml-mode use-package dired-subtree exec-path-from-shell helm org-drill-table org-drill color-theme-sanityinc-solarized eglot-jl))
  '(safe-local-variable-values
    '((org-latex-compiler . "TEXINPUTS=%o:%o/../document-style/beamer-style: pdflatex")
      (org-latex-compiler . "TEXINPUTS=.:../document-style/beamer-style: pdflatex")
@@ -30,7 +33,7 @@
  '(send-mail-function 'mailclient-send-it)
  '(smtpmail-smtp-server "smtp.gmail.com")
  '(smtpmail-smtp-service 587)
- '(warning-suppress-types '((org))))
+ '(warning-suppress-types '((lsp-mode) (lsp-mode) (lsp-mode) (org))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

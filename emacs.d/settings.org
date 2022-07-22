@@ -99,6 +99,16 @@ directories with a minimum of keystrokes.
    truncate-lines t
    visible-bell t
    )
+(global-set-key (kbd "C-x C-z") 'recenter)
+
+(setq set-mark-command-repeat-pop t
+; If you set ‘set-mark-command-repeat-pop’ to non-‘nil’, then
+; immediately after you type ‘C-u C-<SPC>’, you can type ‘C-<SPC>’
+; instead of ‘C-u C-<SPC>’ to cycle through the mark ring.  By
+; default, ‘set-mark-command-repeat-pop’ is ‘nil’.
+      )
+(setq global-mark-ring-max 1024
+      mark-ring-max 64)
 #+end_src
 * Text Editing
 
@@ -120,8 +130,21 @@ directories with a minimum of keystrokes.
       (insert-pair 0 ?[ ?])
       (backward-char)
       )
-    (global-set-key (kbd "M-[") 'org-drill-wrap-word)
+    (global-set-key (kbd "C-x RET [") 'org-drill-wrap-word)
 ; fo[obar] T[his] is my te[xt]
+
+    (defun org-drill-wrap-with-alternative (start end alternative)
+      "Wrap region and create cloze with 2 alternatives. 'Foobar' -> '[Foobar||Foobar or Barfoo]'"
+      (interactive "r\nMAlternative: \n")
+      (kill-region start end)
+      (let ((answer (car kill-ring)))
+	(if (= (abs (% (random) 2)) 0)
+	    (insert (concat "[" answer "||\"" answer "\" or \"" alternative "\"]"))
+	  (insert (concat "[" answer "||\"" alternative "\" or \"" answer "\"]"))
+	  )
+	)
+      )
+(global-set-key (kbd "C-x RET M-[") 'org-drill-wrap-with-alternative)
 #+end_src
 
 ** Source Code
@@ -200,7 +223,9 @@ directories with a minimum of keystrokes.
 
 #+begin_src elisp
 (setq
-  org-drill-add-random-noise-to-intervals-p t)
+  org-drill-add-random-noise-to-intervals-p t
+  org-drill-use-visible-cloze-face-p t
+  )
 #+end_src
 
 ** Capture Templates
@@ -258,9 +283,34 @@ directories with a minimum of keystrokes.
        ("rc" "Recruitment 2 - Approved bur No Positions Now Invitation to Club" entry
         (file "~/Work/tech-unit/recruitment-emails.org")
         (file "~/Work/tech-unit/recruitment/email-templates/20-invitation-to-club.org"))
+       ("d" "Org drill")
+       ("dp"
+        "PDF catpure"
+        entry
+        (file "/home/jz/SideProjects/spaced-repetition-decks/inbox.org")
+        ,(concat "* Item        :drill:\n"
+                 ":PROPERTIES:\n:DATE_ADDED: %u\n:SOURCE: %l\n:END:\n\n"
+		     "%(org-capture-pdf-active-region)\n%?\n")
+        :empty-lines 1
+        :immediate-finish nil)
+       ("dt"
+        "Text catpure"
+        entry
+        (file "/home/jz/SideProjects/spaced-repetition-decks/inbox.org")
+        ,(concat "* Item        :drill:\n"
+                 ":PROPERTIES:\n:DATE_ADDED: %u\n:SOURCE: %l\n:END:\n\n"
+		     "%i\n%?\n")
+        :empty-lines 1
+        :immediate-finish nil)
        )
      )
 #+end_src
+
+#+RESULTS:
+| t | Todo                         | entry | (file+headline ~/Work/todo-lists/datarisk.org TODO-LIST: Tech Unit)        | (file ~/.emacs.d/org-templates/todo.org)               | :prepend | t |                   |   |
+| m | Meeting Summary              | entry | (file+headline ~/Work/meeting-summaries.org Meeting Summaries - Tech Unit) | (file ~/.emacs.d/org-templates/meeting-summary.org)    | :prepend | t | :jump-to-captured | t |
+| p | Meeting Summary - Portuguese | entry | (file+headline ~/Work/meeting-summaries.org Meeting Summaries - Other)     | (file ~/.emacs.d/org-templates/meeting-summary-pt.org) | :prepend | t | :jump-to-captured | t |
+| e | Engineering Journal          | entry | (file ~/.emacs.d/engineering-journal.org)                                  | * %?                                                   |          |   |                   |   |
 
 ** Refiling
 
@@ -275,6 +325,10 @@ Refill org headings w/ ~C-c C-w~
                           (org-agenda-files :maxlevel . 1)
                           (org-jz-summary-files :maxlevel . 1)
                           (("~/SideProjects/personal-todo.org") :maxlevel . 2)
+                          ((
+			        "~/SideProjects/spaced-repetition-decks/austrian-economics-and-libertarianism.org"
+				"~/SideProjects/spaced-repetition-decks/computing.org"
+			        ) :maxlevel . 2)
                           )
      org-outline-path-complete-in-steps nil
      org-refile-use-outline-path "file"
@@ -556,6 +610,38 @@ i.e. windows tiled side-by-side."
 #+begin_src elisp
  (require 'org-msg)
 #+end_src
+** Src Blocks
+
+#+begin_src elisp
+  (setq org-src-preserve-indentation t)
+#+end_src
+** Fix pdf links
+
+#+begin_src elisp
+;; From this unmaintainded repo: https://github.com/markus1189/org-pdfview
+(require 'org-pdfview)
+#+end_src
+** Capturing text from pdf (for usage in org capture)
+
+#+begin_src elisp
+(defun org-capture-pdf-active-region ()
+  "Capture the active region of the pdf-view buffer."
+  (let* ((pdf-buf-name (plist-get org-capture-plist :original-buffer))
+         (pdf-buf (get-buffer pdf-buf-name)))
+    (if (buffer-live-p pdf-buf)
+        (with-current-buffer pdf-buf
+          (car (pdf-view-active-region-text)))
+      (user-error "Buffer %S not alive." pdf-buf-name))))
+
+;; sample usage:
+;; (setq org-capture-templates
+;;       '(
+;;         ("j" "Notes" entry (file+olp "/temp/Notes.org" "Notes")
+;;          "* %?\n%(org-capture-pdf-active-region)\n")
+;;         )
+;;       )
+#+end_src
+
 * Helm
 
 #+begin_src elisp
@@ -715,7 +801,7 @@ most is based on git.
              )
             ("blogother"
              :base-directory "~/SideProjects/jz-blog/other/"
-             :base-extension "css\\|jpg"
+             :base-extension "css\\|jpg\\|png"
              :publishing-directory "~/SideProjects/jz-blog/public/other"
              :publishing-function org-publish-attachment)
             ("JZ's blog" :components ("bloghtml" "blogother")))
@@ -758,6 +844,9 @@ most is based on git.
 (add-to-list 'auto-mode-alist '("\\.pdf$" . pdf-tools-install))
 
  (require 'bookmark+)
+
+(setq
+ bookmark-save-flag 1)
 #+end_src
 
 * SQL
@@ -916,4 +1005,12 @@ Channel gmail-starred
 (setq rmh-elfeed-org-files (list "~/.emacs.d/feeds.org"))
 (setq-default elfeed-search-filter "@3-days-ago +unread ")
 
+#+end_src
+* Key cast
+
+A mode that will log to the screen the command that I am typing. I
+think this is awesome for showing developers new to Emacs.
+
+#+begin_src elisp
+; (keycast-tab-bar-mode)
 #+end_src

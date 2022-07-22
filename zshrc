@@ -51,9 +51,12 @@ function puml {
 source /home/jz/Work/tech-unit/model-marketplace/sh/model-marketplace.sh
 source ~/.zsh-parts/model-marketplace.sh
 export PATH="$PATH:/home/jz/.dotnet/tools"
-export DOTNET_ROOT="/home/jz/.local/dotnet-5.0.403"
-export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
-export PATH="${PATH}:${DOTNET_ROOT}"
+
+function activate-dotnet-datapi {
+    export DOTNET_ROOT="/home/jz/.local/dotnet-5.0.403"
+    export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
+    export PATH="${PATH}:${DOTNET_ROOT}"
+}
 
 function activate-dotnet-cpf {
     export DOTNET_ROOT="/home/jz/.local/dotnet-5.0.201"
@@ -66,6 +69,8 @@ function activate-dotnet-6 {
     export MSBuildSDKsPath=$DOTNET_ROOT/sdk/$(${DOTNET_ROOT}/dotnet --version)/Sdks
     export PATH="${DOTNET_ROOT}:${PATH}"
 }
+
+activate-dotnet-6
 
 export DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=1
 source /home/jz/.local/bin/git-subrepo/.rc
