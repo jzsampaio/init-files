@@ -614,8 +614,22 @@ i.e. windows tiled side-by-side."
 ** Src Blocks
 
 #+begin_src elisp
-  (setq org-src-preserve-indentation t)
+(setq org-src-preserve-indentation t)
+
+(defun org-src-block-split ()
+  "Split current src block into 2"
+  (interactive)
+  (let
+      ((initial-point (progn (org-beginning-of-line) (point)))
+       (src-start (progn (org-babel-goto-src-block-head) (point)))
+       (src-end (progn (org-end-of-line) (point))))
+    (goto-char initial-point)
+    (insert "#+end_src\n\n\n")
+    (insert-buffer-substring (current-buffer) tmp-src-start tmp-src-end)
+    (org-babel-goto-src-block-head)))
+(global-set-key (kbd "C-x RET s") 'org-src-block-split)
 #+end_src
+
 ** Fix pdf links
 
 #+begin_src elisp
@@ -848,8 +862,12 @@ most is based on git.
 
  (require 'bookmark+)
 
+
 (setq
- bookmark-save-flag 1)
+; Controls when Emacs saves bookmarks to a file.
+ bookmark-save-flag 1
+ bmkp-bookmark-set-confirms-overwrite-p t
+ )
 #+end_src
 
 * SQL
