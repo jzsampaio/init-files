@@ -1,0 +1,5 @@
+* TODO %^{Task title}
+SCHEDULED: %t
+:LOGBOOK:
+- Created on %T
+:END:

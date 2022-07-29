@@ -1,0 +1,7 @@
+* [info][meeting-summary] %^{Meeting Title} at %T
+** Who joined?
+** What was discussed?
+
+%?
+
+** Next steps

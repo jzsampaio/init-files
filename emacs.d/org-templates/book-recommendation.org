@@ -1,0 +1,8 @@
+* TODO %^{Book title}
+:PROPERTIES:
+:LINK: %?
+:TAGS:
+:AUTHORS:
+:NOTE:
+:CREATED: %T
+:END:

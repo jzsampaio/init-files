@@ -1,0 +1,7 @@
+* [info][resumo-reunião] %^{Meeting Title} em %T
+** Participantes
+** Discussões
+
+%?
+
+** Próximo Passos
