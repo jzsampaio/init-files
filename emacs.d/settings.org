@@ -625,7 +625,7 @@ i.e. windows tiled side-by-side."
        (src-end (progn (org-end-of-line) (point))))
     (goto-char initial-point)
     (insert "#+end_src\n\n\n")
-    (insert-buffer-substring (current-buffer) tmp-src-start tmp-src-end)
+    (insert-buffer-substring (current-buffer) src-start src-end)
     (org-babel-goto-src-block-head)))
 (global-set-key (kbd "C-x RET s") 'org-src-block-split)
 #+end_src
