@@ -1,0 +1,13 @@
+#!/bin/bash
+
+run() {
+    local desired_password_length=100
+    local pw=''
+    local salt=''
+    read -rsp "Password:" pw
+    read -rsp"
+Salt:" salt
+    echo -n "$pw" | nettle-pbkdf2 $salt -l$desired_password_length | tr -d '[:space:]'
+}
+
+run
